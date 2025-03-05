@@ -1,0 +1,38 @@
+name: Trigger CI
+on: push
+
+jobs:
+  build:
+    name: Build Jekyll with Bookshop and Dispatch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.0"
+          bundler-cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install
+          npm install -g @bookshop/jekyll-engine
+
+      - name: Build site
+        run: bundle exec jekyll build
+
+      - name: Emit repository_dispatch
+        uses: mvasigh/dispatch-action@main
+        with:
+          # You should create a personal access token and store it in your repository
+          token: ${{ secrets.DISPATCH_AUTH }}
+          repo: seizenB.github.io
+          owner: seizenB
+          event_type: push
